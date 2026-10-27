@@ -1,0 +1,80 @@
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  BIDDER
+  AUCTIONEER
+}
+
+enum AuctionStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  FINISHED
+  CANCELED
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         UserRole @default(BIDDER)
+  createdAt    DateTime @default(now())
+
+  wallet       Wallet?
+  lots         AuctionLot[]
+  bids         Bid[]
+}
+
+model Wallet {
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+  balanceCents         BigInt   @default(0)
+  reservedCents        BigInt   @default(0)
+  updatedAt            DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model AuctionLot {
+  id                 String        @id @default(uuid())
+  title              String
+  description        String?
+  imageUrl           String?
+  externalProductId  String?
+  startingPriceCents BigInt
+  incrementCents     BigInt
+  currentPriceCents  BigInt?
+  startsAt           DateTime
+  endsAt             DateTime
+  status             AuctionStatus @default(DRAFT)
+  auctioneerId       String
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  auctioneer User  @relation(fields: [auctioneerId], references: [id])
+  bids       Bid[]
+
+  @@index([status, endsAt])
+}
+
+model Bid {
+  id          String   @id @default(uuid())
+  amountCents BigInt
+  createdAt   DateTime @default(now())
+  lotId       String
+  bidderId    String
+
+  lot    AuctionLot @relation(fields: [lotId], references: [id])
+  bidder User       @relation(fields: [bidderId], references: [id])
+
+  @@index([lotId, createdAt])
+}

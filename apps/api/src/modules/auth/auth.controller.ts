@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { Prisma } from "../../generated/prisma/client";
 import { ZodError } from "zod";
-import { registerSchema } from "./auth.schema";
+import { registerSchema, loginSchema } from "./auth.schema";
 import { authService } from "./auth.service";
 
 export class AuthController {
@@ -45,6 +45,40 @@ export class AuthController {
       }
 
       console.error("Erro no cadastro:", error);
+
+      res.status(500).json({
+        message: "Erro interno do servidor",
+      });
+    }
+  }
+
+  async login(req: Request, res: Response): Promise<void> {
+    try {
+      const data = loginSchema.parse(req.body);
+
+      const result = await authService.login(data);
+
+      res.status(200).json(result);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        res.status(400).json({
+          message: "Dados inválidos",
+          errors: error.issues,
+        });
+        return;
+      }
+
+      if (
+        error instanceof Error &&
+        error.message === "INVALID_CREDENTIALS"
+      ) {
+        res.status(401).json({
+          message: "E-mail ou senha inválidos",
+        });
+        return;
+      }
+
+      console.error("Erro no login:", error);
 
       res.status(500).json({
         message: "Erro interno do servidor",

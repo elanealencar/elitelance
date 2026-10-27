@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import { authRoutes } from "./modules/auth/auth.routes";
+import { catalogRoutes } from "./modules/catalog/catalog.routes";
+import { auctionRoutes } from "./modules/auctions/auction.routes";
 
 export const app = express();
 
@@ -19,3 +21,5 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/auth", authRoutes);
+app.use("/catalog", catalogRoutes);
+app.use("/auctions", auctionRoutes);

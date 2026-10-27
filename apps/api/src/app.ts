@@ -4,6 +4,7 @@ import { authRoutes } from "./modules/auth/auth.routes";
 import { catalogRoutes } from "./modules/catalog/catalog.routes";
 import { auctionRoutes } from "./modules/auctions/auction.routes";
 import { walletRoutes } from "./modules/wallet/wallet.routes";
+import { bidRoutes } from "./modules/bids/bid.routes";
 
 export const app = express();
 
@@ -25,3 +26,4 @@ app.use("/auth", authRoutes);
 app.use("/catalog", catalogRoutes);
 app.use("/auctions", auctionRoutes);
 app.use("/wallet", walletRoutes);
+app.use("/auctions", bidRoutes);

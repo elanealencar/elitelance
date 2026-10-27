@@ -5,13 +5,18 @@ import { authorize } from "../../middlewares/authorize.middleware";
 
 export const walletRoutes = Router();
 
+// Todas as rotas exigem autenticação.
 walletRoutes.use(authenticate);
-walletRoutes.use(authorize("BIDDER"));
 
-walletRoutes.get("/", (req, res) =>
-  walletController.get(req, res)
+// Licitantes e leiloeiros podem consultar a própria carteira.
+walletRoutes.get(
+  "/",
+  (req, res) => walletController.get(req, res)
 );
 
-walletRoutes.post("/deposit", (req, res) =>
-  walletController.deposit(req, res)
+// Apenas licitantes podem realizar depósitos fictícios.
+walletRoutes.post(
+  "/deposit",
+  authorize("BIDDER"),
+  (req, res) => walletController.deposit(req, res)
 );

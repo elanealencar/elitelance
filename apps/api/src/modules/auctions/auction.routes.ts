@@ -2,6 +2,7 @@ import { Router } from "express";
 import { auctionController } from "./auction.controller";
 import { authenticate } from "../../middlewares/auth.middleware";
 import { authorize } from "../../middlewares/authorize.middleware";
+import { auctionReceiptController } from "./auction-receipt.controller";
 
 export const auctionRoutes = Router();
 
@@ -15,4 +16,10 @@ auctionRoutes.post(
   authenticate,
   authorize("AUCTIONEER"),
   (req, res) => auctionController.create(req, res)
+);
+
+auctionRoutes.get(
+  "/:id/receipt",
+  authenticate,
+  (req, res) => auctionReceiptController.show(req, res)
 );

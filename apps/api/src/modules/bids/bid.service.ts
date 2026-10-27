@@ -1,5 +1,8 @@
 import { Prisma } from "../../generated/prisma/client";
 import { prisma } from "../../lib/prisma";
+import { generateBidHash, GENESIS_HASH } from "./bid-hash";
+import { randomUUID } from "node:crypto";
+
 
 const TWO_MINUTES_MS = 2 * 60 * 1000;
 
@@ -53,6 +56,20 @@ export class BidService {
             { createdAt: "asc" },
           ],
         });
+        
+        const lastHashedBid = await tx.bid.findFirst({
+          where: {
+            lotId,
+            hash: { not: null },
+          },
+          orderBy: [
+            { createdAt: "desc" },
+            { id: "desc" },
+          ],
+        });
+
+        const previousHash =
+          lastHashedBid?.hash ?? GENESIS_HASH;
 
         if (leadingBid?.bidderId === bidderId) {
           throw new Error("ALREADY_LEADING");
@@ -133,14 +150,31 @@ export class BidService {
           },
         });
 
+        const bidId = randomUUID();
+        const createdAt = new Date();
+
+        const hash = generateBidHash({
+          id: bidId,
+          lotId,
+          bidderId,
+          amountCents: BigInt(amountCents),
+          createdAt,
+          previousHash,
+        });
+
         const bid = await tx.bid.create({
           data: {
+            id: bidId,
             lotId,
             bidderId,
-            amountCents: amount,
+            amountCents: BigInt(amountCents),
+            createdAt,
+            previousHash,
+            hash,
           },
         });
 
+  
         // Anti-sniping: estende o encerramento em 2 minutos
         // quando o lance chega nos últimos 2 minutos.
         const remainingMs =

@@ -73,6 +73,9 @@ model Bid {
   lotId       String
   bidderId    String
 
+  previousHash String?
+  hash         String? @unique
+
   lot    AuctionLot @relation(fields: [lotId], references: [id])
   bidder User       @relation(fields: [bidderId], references: [id])
 

@@ -3,6 +3,7 @@ import cors from "cors";
 import { authRoutes } from "./modules/auth/auth.routes";
 import { catalogRoutes } from "./modules/catalog/catalog.routes";
 import { auctionRoutes } from "./modules/auctions/auction.routes";
+import { walletRoutes } from "./modules/wallet/wallet.routes";
 
 export const app = express();
 
@@ -23,3 +24,4 @@ app.get("/health", (_req, res) => {
 app.use("/auth", authRoutes);
 app.use("/catalog", catalogRoutes);
 app.use("/auctions", auctionRoutes);
+app.use("/wallet", walletRoutes);

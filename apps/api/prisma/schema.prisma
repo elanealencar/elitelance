@@ -72,6 +72,7 @@ model Bid {
   createdAt   DateTime @default(now())
   lotId       String
   bidderId    String
+  sequence    Int?
 
   previousHash String?
   hash         String? @unique
@@ -79,6 +80,7 @@ model Bid {
   lot    AuctionLot @relation(fields: [lotId], references: [id])
   bidder User       @relation(fields: [bidderId], references: [id])
 
+  @@unique([lotId, sequence])
   @@index([lotId, createdAt])
 }
 

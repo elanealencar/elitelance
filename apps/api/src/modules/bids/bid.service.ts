@@ -63,6 +63,7 @@ export class BidService {
             hash: { not: null },
           },
           orderBy: [
+            { sequence: "desc" },
             { createdAt: "desc" },
             { id: "desc" },
           ],
@@ -70,6 +71,11 @@ export class BidService {
 
         const previousHash =
           lastHashedBid?.hash ?? GENESIS_HASH;
+
+        const nextSequence =
+          lastHashedBid?.sequence != null
+            ? lastHashedBid.sequence + 1
+            : 1;
 
         if (leadingBid?.bidderId === bidderId) {
           throw new Error("ALREADY_LEADING");
@@ -157,7 +163,7 @@ export class BidService {
           id: bidId,
           lotId,
           bidderId,
-          amountCents: BigInt(amountCents),
+          amountCents: amount,
           createdAt,
           previousHash,
         });
@@ -167,10 +173,11 @@ export class BidService {
             id: bidId,
             lotId,
             bidderId,
-            amountCents: BigInt(amountCents),
+            amountCents: amount,
             createdAt,
             previousHash,
             hash,
+            sequence: nextSequence,
           },
         });
 

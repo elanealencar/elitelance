@@ -3,6 +3,7 @@ import { auctionController } from "./auction.controller";
 import { authenticate } from "../../middlewares/auth.middleware";
 import { authorize } from "../../middlewares/authorize.middleware";
 import { auctionReceiptController } from "./auction-receipt.controller";
+import { bidHistoryController } from "../bids/bid-history.controller";
 
 export const auctionRoutes = Router();
 
@@ -22,4 +23,9 @@ auctionRoutes.get(
   "/:id/receipt",
   authenticate,
   (req, res) => auctionReceiptController.show(req, res)
+);
+
+auctionRoutes.get(
+  "/:id/bids",
+  (req, res) => bidHistoryController.index(req, res)
 );

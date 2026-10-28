@@ -15,7 +15,9 @@ const statusLabels: Record<string, string> = {
 export default async function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Header />
+      <Suspense fallback={<div className="h-21" />}>
+        <Header />
+      </Suspense>
 
       <main>
         <section className="relative overflow-hidden border-b border-border">

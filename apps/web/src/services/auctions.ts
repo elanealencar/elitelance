@@ -36,3 +36,11 @@ export async function getAuctions(): Promise<Auction[]> {
 
   return data.lots;
 }
+
+export async function getAuctionById(
+  id: string
+): Promise<Auction | null> {
+  const auctions = await getAuctions();
+
+  return auctions.find((auction) => auction.id === id) ?? null;
+}

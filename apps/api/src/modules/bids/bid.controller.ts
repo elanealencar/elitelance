@@ -41,6 +41,42 @@ const errorResponses: Record<string, {
 };
 
 export class BidController {
+  async getMyBidStatus(req: Request, res: Response) {
+    const { id: lotId } = req.params;
+
+    if (typeof lotId !== "string" || !lotId) {
+      res.status(400).json({
+        message: "Identificador do lote inválido",
+      });
+      return;
+    }
+
+    try {
+      const status = await bidService.getMyBidStatus(
+        lotId,
+        res.locals.user.id
+      );
+
+      res.status(200).json(status);
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === "LOT_NOT_FOUND"
+      ) {
+        res.status(404).json({
+          message: "Lote não encontrado",
+        });
+        return;
+      }
+
+      console.error("Erro ao consultar liderança:", error);
+
+      res.status(500).json({
+        message: "Erro interno ao consultar liderança",
+      });
+    }
+  }
+
   async create(req: Request, res: Response) {
     const parsed = createBidSchema.safeParse(req.body);
 

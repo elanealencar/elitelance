@@ -66,3 +66,38 @@ export async function POST(
     );
   }
 }
+
+export async function GET(
+  _request: NextRequest,
+  { params }: RouteContext
+) {
+  const { id } = await params;
+
+  if (!API_URL) {
+    return NextResponse.json(
+      { message: "API não configurada." },
+      { status: 500 }
+    );
+  }
+
+  try {
+    const response = await fetch(
+      `${API_URL}/auctions/${encodeURIComponent(id)}/bids`,
+      { cache: "no-store" }
+    );
+
+    const data = await response.json();
+
+    return NextResponse.json(data, {
+      status: response.status,
+      headers: {
+        "Cache-Control": "no-store",
+      },
+    });
+  } catch {
+    return NextResponse.json(
+      { message: "Não foi possível consultar os lances." },
+      { status: 502 }
+    );
+  }
+}

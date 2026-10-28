@@ -7,6 +7,50 @@ import { randomUUID } from "node:crypto";
 const TWO_MINUTES_MS = 2 * 60 * 1000;
 
 export class BidService {
+  async getMyBidStatus(lotId: string, bidderId: string) {
+    const lot = await prisma.auctionLot.findUnique({
+      where: { id: lotId },
+      select: { id: true },
+    });
+
+    if (!lot) {
+      throw new Error("LOT_NOT_FOUND");
+    }
+
+    // Mesma ordenação utilizada na criação dos lances.
+    const leadingBid = await prisma.bid.findFirst({
+      where: { lotId },
+      orderBy: [
+        { amountCents: "desc" },
+        { createdAt: "asc" },
+      ],
+      select: {
+        bidderId: true,
+      },
+    });
+
+    const myLastBid = await prisma.bid.findFirst({
+      where: {
+        lotId,
+        bidderId,
+      },
+      orderBy: [
+        { createdAt: "desc" },
+        { id: "desc" },
+      ],
+      select: {
+        amountCents: true,
+      },
+    });
+
+    return {
+      hasBid: myLastBid !== null,
+      isLeading: leadingBid?.bidderId === bidderId,
+      lastBidAmountCents:
+        myLastBid?.amountCents.toString() ?? null,
+    };
+  }
+
   async create(
     lotId: string,
     bidderId: string,

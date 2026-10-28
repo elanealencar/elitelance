@@ -11,3 +11,10 @@ bidRoutes.post(
   authorize("BIDDER"),
   (req, res) => bidController.create(req, res)
 );
+
+bidRoutes.get(
+  "/:id/my-bid-status",
+  authenticate,
+  authorize("BIDDER"),
+  (req, res) => bidController.getMyBidStatus(req, res)
+);

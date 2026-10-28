@@ -8,6 +8,7 @@ import { getAuctionById } from "@/services/auctions";
 
 import { BidHistory } from "@/components/auctions/BidHistory";
 import { getSessionUser } from "@/lib/session";
+import { AuctionLiveUpdater } from "@/components/auctions/AuctionLiveUpdater";
 
 type AuctionPageProps = {
   params: Promise<{ id: string }>;
@@ -44,7 +45,19 @@ async function AuctionContent({
 
   return (
     <>
-      <AuctionDetails auction={auction} userRole={user?.role ?? null} />
+      <AuctionLiveUpdater
+        auctionId={auction.id}
+        currentPriceCents={
+          auction.currentPriceCents ?? auction.startingPriceCents
+        }
+        endsAt={auction.endsAt}
+        status={auction.status}
+      />
+
+      <AuctionDetails
+        auction={auction}
+        userRole={user?.role ?? null}
+      />
 
       <div className="mx-auto max-w-7xl px-6 pb-16">
         <Suspense

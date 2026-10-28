@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { Auction } from "@/services/auctions";
 import { formatCurrency, formatDateBR } from "@/lib/format";
 import { AuctionCountdown } from "./AuctionCountdown";
-import { BidForm } from "./BidForm";
+import { AuctionBidPanel } from "./AuctionBidPanel";
 
 type AuctionDetailsProps = {
   auction: Auction;
@@ -131,7 +131,7 @@ export function AuctionDetails({
                 </div>
 
                 {userRole === "BIDDER" ? (
-                  <BidForm
+                  <AuctionBidPanel
                     auctionId={auction.id}
                     minimumBidCents={minimumBid.toString()}
                   />

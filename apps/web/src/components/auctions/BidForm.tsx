@@ -8,11 +8,15 @@ import { formatCurrency } from "@/lib/format";
 type BidFormProps = {
   auctionId: string;
   minimumBidCents: string;
+  disabled?: boolean;
+  onBidSuccess?: () => void;
 };
 
 export function BidForm({
   auctionId,
   minimumBidCents,
+  disabled = false,
+  onBidSuccess,
 }: BidFormProps) {
   const router = useRouter();
 
@@ -23,6 +27,7 @@ export function BidForm({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (disabled || loading) return;
 
     setError("");
     setSuccess("");
@@ -47,6 +52,10 @@ export function BidForm({
       return;
     }
 
+    if (amountCents > BigInt(Number.MAX_SAFE_INTEGER)) {
+      setError("O valor informado é muito alto.");
+      return;
+    }
     setLoading(true);
 
     try {
@@ -78,6 +87,7 @@ export function BidForm({
       setSuccess("Lance registrado com sucesso!");
       setAmount("");
 
+      onBidSuccess?.();
       router.refresh();
     } catch (err) {
       setError(
@@ -104,11 +114,13 @@ export function BidForm({
           id="bid-amount"
           type="text"
           inputMode="decimal"
-          placeholder="Ex.: 150,00"
+          placeholder={
+            disabled ? "Você já possui o maior lance" : "Ex.: 150,00"
+          }
           value={amount}
           onChange={(event) => setAmount(event.target.value)}
-          disabled={loading}
-          className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-white outline-none focus:border-[#c8ff28]"
+          disabled={loading || disabled}
+          className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-[#c8ff28] disabled:cursor-not-allowed disabled:opacity-50 disabled:select-none"
         />
 
         <p className="mt-2 text-xs text-[#a8a8b3]">
@@ -130,10 +142,14 @@ export function BidForm({
 
       <button
         type="submit"
-        disabled={loading}
+        disabled={loading || disabled}
         className="w-full cursor-pointer rounded-xl bg-[#c8ff28] px-6 py-3 font-bold text-black transition hover:bg-[#b5e825] disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {loading ? "REGISTRANDO LANCE..." : "CONFIRMAR LANCE"}
+        {loading
+          ? "REGISTRANDO LANCE..."
+          : disabled
+            ? "VOCÊ JÁ POSSUI O MAIOR LANCE"
+            : "CONFIRMAR LANCE"}
       </button>
     </form>
   );

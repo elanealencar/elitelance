@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { AuctionsList } from "@/components/auctions/AuctionsList";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
 
 const statusLabels: Record<string, string> = {
   ACTIVE: "Em andamento",
@@ -13,31 +15,7 @@ const statusLabels: Record<string, string> = {
 export default async function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border bg-[#101116]">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-5">
-          <Link
-            href="/"
-            className="text-2xl font-bold tracking-tight"
-          >
-            Elite<span className="text-primary">Lance.</span>
-          </Link>
-
-          <nav className="flex items-center gap-4 sm:gap-8">
-            <Link
-              href="/#leiloes"
-              className="text-sm text-white/75 transition hover:text-primary"
-            >
-              Leilões
-            </Link>
-            <Link
-              href="/login"
-              className="rounded-full border border-white/50 px-5 py-2 text-sm font-semibold transition hover:border-primary hover:text-primary"
-            >
-              Entrar
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       <main>
         <section className="relative overflow-hidden border-b border-border">
@@ -120,16 +98,9 @@ export default async function Home() {
         </section>
       </main>
 
-      <footer className="border-t border-border bg-[#101116]">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-6 py-8">
-          <span className="text-lg font-bold">
-            Elite<span className="text-primary">Lance.</span>
-          </span>
-          <p className="text-sm text-muted">
-            Projeto desenvolvido para o desafio técnico Elite Dev.
-          </p>
-        </div>
-      </footer>
+      
+      <Footer />
+
     </div>
   );
 }

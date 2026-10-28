@@ -7,6 +7,7 @@ import { AuctionDetails } from "@/components/auctions/AuctionDetails";
 import { getAuctionById } from "@/services/auctions";
 
 import { BidHistory } from "@/components/auctions/BidHistory";
+import { getSessionUser } from "@/lib/session";
 
 type AuctionPageProps = {
   params: Promise<{ id: string }>;
@@ -39,9 +40,11 @@ async function AuctionContent({
     notFound();
   }
 
+  const user = await getSessionUser();
+
   return (
     <>
-      <AuctionDetails auction={auction} />
+      <AuctionDetails auction={auction} userRole={user?.role ?? null} />
 
       <div className="mx-auto max-w-7xl px-6 pb-16">
         <Suspense

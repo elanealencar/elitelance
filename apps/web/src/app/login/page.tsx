@@ -11,7 +11,9 @@ export default function LoginPage() {
       </Suspense>
 
       <main className="flex flex-1 items-center justify-center px-6 py-16">
-        <LoginForm />
+        <Suspense fallback={<p>Carregando formulário...</p>}>
+          <LoginForm />
+        </Suspense>
       </main>
 
       <Footer />

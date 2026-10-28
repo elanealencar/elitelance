@@ -4,9 +4,11 @@ import Link from "next/link";
 import type { Auction } from "@/services/auctions";
 import { formatCurrency, formatDateBR } from "@/lib/format";
 import { AuctionCountdown } from "./AuctionCountdown";
+import { BidForm } from "./BidForm";
 
 type AuctionDetailsProps = {
   auction: Auction;
+  userRole: "BIDDER" | "AUCTIONEER" | null;
 };
 
 const statusLabels: Record<Auction["status"], string> = {
@@ -19,6 +21,7 @@ const statusLabels: Record<Auction["status"], string> = {
 
 export function AuctionDetails({
   auction,
+  userRole,
 }: AuctionDetailsProps) {
   const currentPrice =
     auction.currentPriceCents ??
@@ -127,18 +130,33 @@ export function AuctionDetails({
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  disabled
-                  className="mt-5 w-full cursor-not-allowed rounded-full bg-primary px-6 py-4 text-sm font-bold text-black opacity-60"
-                >
-                  FAZER LANCE
-                </button>
+                {userRole === "BIDDER" ? (
+                  <BidForm
+                    auctionId={auction.id}
+                    minimumBidCents={minimumBid.toString()}
+                  />
+                ) : userRole === "AUCTIONEER" ? (
+                  <div className="mt-5 rounded-xl border border-border bg-background p-4">
+                    <p className="text-center text-sm text-muted">
+                      Leiloeiros não podem participar dos lances.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mt-5">
+                    <Link
+                      href={`/login?next=${encodeURIComponent(
+                        `/auctions/${auction.id}`
+                      )}`}
+                      className="flex w-full cursor-pointer items-center justify-center rounded-full bg-primary px-6 py-4 text-sm font-bold text-black transition hover:opacity-90"
+                    >
+                      ENTRAR PARA DAR UM LANCE
+                    </Link>
 
-                <p className="mt-3 text-center text-xs text-muted">
-                  A funcionalidade de lances será habilitada
-                  na próxima etapa.
-                </p>
+                    <p className="mt-3 text-center text-xs text-muted">
+                      Faça login como licitante para participar.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { login } from "@/services/auth";
+import { useSearchParams } from "next/navigation";
 
 export function LoginForm() {
   const router = useRouter();
@@ -12,6 +13,8 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  
+  const searchParams = useSearchParams();
 
   async function handleSubmit(
     event: React.FormEvent<HTMLFormElement>
@@ -23,11 +26,23 @@ export function LoginForm() {
     try {
       const { user } = await login({ email, password });
 
-      router.replace(
-        user.role === "AUCTIONEER"
-          ? "/auctioneer"
-          : "/bidder"
-      );
+      const requestedPath = searchParams.get("next");
+
+      const safePath =
+        requestedPath?.startsWith("/") &&
+        !requestedPath.startsWith("//") &&
+        !requestedPath.startsWith("/\\")
+          ? requestedPath
+          : null;
+
+      const destination =
+        user.role === "BIDDER" && safePath
+          ? safePath
+          : user.role === "AUCTIONEER"
+            ? "/auctioneer"
+            : "/bidder";
+
+      router.replace(destination);
       router.refresh();
     } catch (err) {
       setError(

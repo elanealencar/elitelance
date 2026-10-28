@@ -1,26 +1,14 @@
 import { Suspense } from "react";
+
 import { requireRole } from "@/lib/session";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { WalletDashboard } from "@/components/wallet/WalletDashboard";
 
 async function BidderContent() {
   const user = await requireRole("BIDDER");
 
-  return (
-    <main className="mx-auto min-h-[70vh] max-w-7xl px-6 py-16">
-      <p className="mb-3 text-xs font-bold uppercase tracking-[0.3em] text-primary">
-        Área do licitante
-      </p>
-
-      <h1 className="text-4xl font-bold">
-        Olá, {user.name}!
-      </h1>
-
-      <p className="mt-4 text-muted">
-        Consulte sua carteira e participe dos leilões.
-      </p>
-    </main>
-  );
+  return <WalletDashboard userName={user.name} />;
 }
 
 export default function BidderPage() {
@@ -30,19 +18,19 @@ export default function BidderPage() {
         <Header />
       </Suspense>
 
-      <div className="flex-1">
+      <main className="flex-1">
         <Suspense
           fallback={
-            <main className="mx-auto max-w-7xl px-6 py-16">
+            <div className="mx-auto max-w-7xl px-6 py-16">
               <p className="animate-pulse text-muted">
                 Carregando área do licitante...
               </p>
-            </main>
+            </div>
           }
         >
           <BidderContent />
         </Suspense>
-      </div>
+      </main>
 
       <Footer />
     </div>

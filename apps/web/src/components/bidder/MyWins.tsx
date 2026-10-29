@@ -151,13 +151,25 @@ export function MyWins() {
               <p className="mt-3 text-xs text-muted">
                 Liquidado em {formatDateBR(win.settledAt)}
               </p>
+              
+              <div className="mt-5 flex flex-wrap items-center gap-5">
+                <Link
+                  href={`/auctions/${win.lotId}`}
+                  className="inline-flex cursor-pointer text-sm font-semibold text-primary hover:underline"
+                >
+                  Ver leilão →
+                </Link>
 
-              <Link
-                href={`/auctions/${win.lotId}`}
-                className="mt-5 inline-flex cursor-pointer text-sm font-semibold text-primary hover:underline"
-              >
-                Ver leilão →
-              </Link>
+                <Link
+                  href={`/receipts/${win.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex cursor-pointer text-sm font-semibold text-secondary hover:underline"
+                >
+                  Ver comprovante ↗
+                </Link>
+              </div>
+
             </article>
           ))}
         </div>

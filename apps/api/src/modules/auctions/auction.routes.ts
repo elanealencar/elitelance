@@ -4,6 +4,7 @@ import { authenticate } from "../../middlewares/auth.middleware";
 import { authorize } from "../../middlewares/authorize.middleware";
 import { auctionReceiptController } from "./auction-receipt.controller";
 import { bidHistoryController } from "../bids/bid-history.controller";
+import { publicReceiptController } from "./public-receipt.controller";
 
 export const auctionRoutes = Router();
 
@@ -38,6 +39,11 @@ auctionRoutes.get(
   authenticate,
   authorize("BIDDER"),
   (req, res) => auctionController.myWins(req, res)
+);
+
+auctionRoutes.get(
+  "/receipts/:receiptId",
+  (req, res) => publicReceiptController.show(req, res)
 );
 
 auctionRoutes.get(

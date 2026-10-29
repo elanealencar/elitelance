@@ -27,6 +27,13 @@ auctionRoutes.post(
 );
 
 auctionRoutes.get(
+  "/results",
+  authenticate,
+  authorize("AUCTIONEER"),
+  (req, res) => auctionController.results(req, res)
+);
+
+auctionRoutes.get(
   "/:id/receipt",
   authenticate,
   (req, res) => auctionReceiptController.show(req, res)
@@ -35,4 +42,11 @@ auctionRoutes.get(
 auctionRoutes.get(
   "/:id/bids",
   (req, res) => bidHistoryController.index(req, res)
+);
+
+auctionRoutes.patch(
+  "/:id/cancel",
+  authenticate,
+  authorize("AUCTIONEER"),
+  (req, res) => auctionController.cancel(req, res)
 );

@@ -32,6 +32,8 @@ export function MyAuctions() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [sortBy, setSortBy] = useState("recent");
+  const [cancelingId, setCancelingId] = useState<string | null>(null);
+  const [cancelError, setCancelError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -63,6 +65,50 @@ export function MyAuctions() {
       window.removeEventListener("auction-created", loadAuctions);
     };
   }, []);
+
+  async function handleCancel(lot: AuctioneerLot) {
+    const confirmed = window.confirm(
+      `Deseja realmente cancelar o leilão "${lot.title}"? Essa ação não pode ser desfeita.`
+    );
+
+    if (!confirmed) return;
+
+    setCancelingId(lot.id);
+    setCancelError("");
+
+    try {
+      const response = await fetch(
+        `/api/auctioneer/auctions/${encodeURIComponent(lot.id)}/cancel`,
+        {
+          method: "PATCH",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ?? "Não foi possível cancelar o leilão."
+        );
+      }
+
+      setLots((currentLots) =>
+        currentLots.map((item) =>
+          item.id === lot.id
+            ? { ...item, status: "CANCELED" }
+            : item
+        )
+      );
+    } catch (error) {
+      setCancelError(
+        error instanceof Error
+          ? error.message
+          : "Erro inesperado ao cancelar o leilão."
+      );
+    } finally {
+      setCancelingId(null);
+    }
+  }
 
   const filteredLots = useMemo(() => {
     const normalizedSearch = search
@@ -223,6 +269,12 @@ export function MyAuctions() {
         </div>
       )}  
 
+      {cancelError && (
+        <p role="alert" className="mb-5 text-sm text-red-400">
+          {cancelError}
+        </p>
+      )}
+
       <div className="grid gap-4 md:grid-cols-2">
         {filteredLots.map((lot) => (
           <article
@@ -263,12 +315,32 @@ export function MyAuctions() {
               <p>Encerramento: {formatDateBR(lot.endsAt)}</p>
             </div>
 
-            <Link
-              href={`/auctions/${lot.id}`}
-              className="mt-6 inline-flex cursor-pointer font-semibold text-primary hover:underline"
-            >
-              Ver leilão →
-            </Link>
+            
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+              <Link
+                href={`/auctions/${lot.id}`}
+                className="inline-flex cursor-pointer font-semibold text-primary hover:underline"
+              >
+                Ver leilão →
+              </Link>
+
+              {(lot.status === "SCHEDULED" ||
+                lot.status === "ACTIVE" ||
+                lot.status === "DRAFT") &&
+                lot.bidCount === 0 && (
+                  <button
+                    type="button"
+                    onClick={() => handleCancel(lot)}
+                    disabled={cancelingId === lot.id}
+                    className="cursor-pointer rounded-lg border border-red-500/30 px-4 py-2 text-xs font-semibold text-red-400 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {cancelingId === lot.id
+                      ? "Cancelando..."
+                      : "Cancelar leilão"}
+                  </button>
+                )}
+            </div>
+
           </article>
         ))}
         

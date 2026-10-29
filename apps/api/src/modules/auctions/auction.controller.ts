@@ -71,7 +71,84 @@ export class AuctionController {
       });
     }
   }
+  
+  async cancel(req: Request, res: Response) {
+    const lotId = req.params.id;
 
+    if (typeof lotId !== "string" || !lotId.trim()) {
+      res.status(400).json({
+        message: "Identificador do leilão inválido.",
+      });
+      return;
+    }
+
+    try {
+      const lot = await auctionService.cancel(
+        lotId,
+        res.locals.user.id
+      );
+
+      res.status(200).json({
+        message: "Leilão cancelado com sucesso.",
+        lot,
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        const errors: Record<
+          string,
+          { status: number; message: string }
+        > = {
+          AUCTION_NOT_FOUND: {
+            status: 404,
+            message: "Leilão não encontrado.",
+          },
+          AUCTION_FORBIDDEN: {
+            status: 403,
+            message: "Você não pode cancelar este leilão.",
+          },
+          AUCTION_CANNOT_BE_CANCELED: {
+            status: 409,
+            message: "Este leilão não pode mais ser cancelado.",
+          },
+          AUCTION_HAS_BIDS: {
+            status: 409,
+            message: "Leilões com lances não podem ser cancelados.",
+          },
+        };
+
+        const knownError = errors[error.message];
+
+        if (knownError) {
+          res.status(knownError.status).json({
+            message: knownError.message,
+          });
+          return;
+        }
+      }
+
+      console.error("Erro ao cancelar leilão:", error);
+
+      res.status(500).json({
+        message: "Não foi possível cancelar o leilão.",
+      });
+    }
+  }
+
+  async results(_req: Request, res: Response) {
+    try {
+      const data = await auctionService.getResults(
+        res.locals.user.id
+      );
+
+      res.status(200).json(data);
+    } catch (error) {
+      console.error("Erro ao consultar resultados:", error);
+
+      res.status(500).json({
+        message: "Não foi possível carregar os resultados.",
+      });
+    }
+  }
 }
 
 export const auctionController = new AuctionController();

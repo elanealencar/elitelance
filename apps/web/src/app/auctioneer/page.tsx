@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MyAuctions } from "@/components/auctioneer/MyAuctions";
 import { CreateAuctionForm } from "@/components/auctioneer/CreateAuctionForm";
+import { AuctionResults } from "@/components/auctioneer/AuctionResults";
 
 async function AuctioneerContent() {
   const user = await requireRole("AUCTIONEER");
@@ -34,6 +35,7 @@ async function AuctioneerContent() {
       </details>
       
       <MyAuctions />
+      <AuctionResults />
     </main>
   );
 }

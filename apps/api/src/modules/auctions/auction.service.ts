@@ -39,6 +39,45 @@ export class AuctionService {
       },
     });
   }
+  
+  async listMine(auctioneerId: string) {
+    const lots = await prisma.auctionLot.findMany({
+      where: { auctioneerId },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        imageUrl: true,
+        status: true,
+        startsAt: true,
+        endsAt: true,
+        startingPriceCents: true,
+        currentPriceCents: true,
+        incrementCents: true,
+        createdAt: true,
+        _count: {
+          select: { bids: true },
+        },
+      },
+    });
+
+    return lots.map((lot) => ({
+      id: lot.id,
+      title: lot.title,
+      imageUrl: lot.imageUrl,
+      status:
+        lot.status === "CANCELED" || lot.status === "DRAFT"
+          ? lot.status
+          : getAuctionStatus(lot),
+      startsAt: lot.startsAt,
+      endsAt: lot.endsAt,
+      startingPriceCents: lot.startingPriceCents.toString(),
+      currentPriceCents:
+        lot.currentPriceCents?.toString() ?? null,
+      incrementCents: lot.incrementCents.toString(),
+      bidCount: lot._count.bids,
+    }));
+  }
 
   async listPublic() {
     const lots = await prisma.auctionLot.findMany({

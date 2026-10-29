@@ -12,6 +12,13 @@ auctionRoutes.get(
   (req, res) => auctionController.list(req, res)
 );
 
+auctionRoutes.get(
+  "/mine",
+  authenticate,
+  authorize("AUCTIONEER"),
+  (req, res) => auctionController.listMine(req, res)
+);
+
 auctionRoutes.post(
   "/",
   authenticate,

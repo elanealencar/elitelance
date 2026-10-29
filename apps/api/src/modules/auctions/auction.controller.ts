@@ -55,6 +55,23 @@ export class AuctionController {
 
     res.status(200).json({ lots });
   }
+
+  async listMine(_req: Request, res: Response) {
+    try {
+      const lots = await auctionService.listMine(
+        res.locals.user.id
+      );
+
+      res.status(200).json({ lots });
+    } catch (error) {
+      console.error("Erro ao listar leilões do usuário:", error);
+
+      res.status(500).json({
+        message: "Não foi possível carregar seus leilões",
+      });
+    }
+  }
+
 }
 
 export const auctionController = new AuctionController();

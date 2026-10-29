@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { requireRole } from "@/lib/session";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { MyAuctions } from "@/components/auctioneer/MyAuctions";
 
 async function AuctioneerContent() {
   const user = await requireRole("AUCTIONEER");
@@ -19,6 +20,8 @@ async function AuctioneerContent() {
       <p className="mt-4 text-muted">
         Gerencie seus lotes e acompanhe os leilões.
       </p>
+
+      <MyAuctions />
     </main>
   );
 }

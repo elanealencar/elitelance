@@ -1,15 +1,18 @@
+
 import "dotenv/config";
+
 import { app } from "./app";
 import { startAuctionFinalizationJob } from "./jobs/auction-finalization.job";
 
 const PORT = Number(process.env.PORT) || 3333;
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 EliteLance API rodando na porta ${PORT}`);
-});
-
-app.listen(PORT, () => {
-  console.log(`API running on port ${PORT}`);
 
   startAuctionFinalizationJob();
+});
+
+server.on("error", (error) => {
+  console.error("Erro ao iniciar a API:", error);
+  process.exitCode = 1;
 });

@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/session";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MyAuctions } from "@/components/auctioneer/MyAuctions";
+import { CreateAuctionForm } from "@/components/auctioneer/CreateAuctionForm";
 
 async function AuctioneerContent() {
   const user = await requireRole("AUCTIONEER");
@@ -21,6 +22,17 @@ async function AuctioneerContent() {
         Gerencie seus lotes e acompanhe os leilões.
       </p>
 
+      <details className="group mt-10 rounded-2xl border border-border bg-surface">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-6 font-bold text-primary">
+          + Criar novo leilão
+          <span className="text-sm transition group-open:rotate-45">+</span>
+        </summary>
+
+        <div className="border-t border-border p-6">
+          <CreateAuctionForm />
+        </div>
+      </details>
+      
       <MyAuctions />
     </main>
   );

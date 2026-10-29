@@ -42,6 +42,7 @@ export function MyAuctions() {
 
         if (active) {
           setLots(data.lots);
+          setError("");
         }
       } catch {
         if (active) {
@@ -55,9 +56,11 @@ export function MyAuctions() {
     }
 
     void loadAuctions();
+    window.addEventListener("auction-created", loadAuctions);
 
     return () => {
       active = false;
+      window.removeEventListener("auction-created", loadAuctions);
     };
   }, []);
 
@@ -205,9 +208,20 @@ export function MyAuctions() {
         <h2 className="text-2xl font-bold">Meus leilões</h2>
 
         <span className="text-sm text-muted">
-          {lots.length} lote(s)
+          {filteredLots.length} {filteredLots.length === 1 ? "lote" : "lotes"}
         </span>
       </div>
+
+      {filteredLots.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-border p-8 text-center">
+          <p className="font-semibold">
+            Nenhum leilão encontrado.
+          </p>
+          <p className="mt-2 text-sm text-muted">
+            Experimente alterar a busca ou os filtros.
+          </p>
+        </div>
+      )}  
 
       <div className="grid gap-4 md:grid-cols-2">
         {filteredLots.map((lot) => (
@@ -257,16 +271,7 @@ export function MyAuctions() {
             </Link>
           </article>
         ))}
-        {filteredLots.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-border p-8 text-center">
-            <p className="font-semibold">
-              Nenhum leilão encontrado.
-            </p>
-            <p className="mt-2 text-sm text-muted">
-              Experimente alterar a busca ou os filtros.
-            </p>
-          </div>
-        )}
+        
       </div>
     </section>
   );

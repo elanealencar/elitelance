@@ -1,14 +1,21 @@
 import { Suspense } from "react";
-
 import { requireRole } from "@/lib/session";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { WalletDashboard } from "@/components/wallet/WalletDashboard";
+import { MyWins } from "@/components/bidder/MyWins";
 
 async function BidderContent() {
   const user = await requireRole("BIDDER");
 
-  return <WalletDashboard userName={user.name} />;
+  return (
+    <>
+      <WalletDashboard userName={user.name} />
+      <div className="mx-auto max-w-7xl px-6 py-10">
+        <MyWins />
+      </div>
+    </>
+  );
 }
 
 export default function BidderPage() {

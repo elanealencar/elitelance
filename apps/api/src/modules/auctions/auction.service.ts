@@ -277,7 +277,57 @@ export class AuctionService {
       results,
     };
   }
+  
+  async getMyWins(bidderId: string) {
+    const settlements = await prisma.auctionSettlement.findMany({
+      where: {
+        winnerId: bidderId,
+      },
+      orderBy: {
+        settledAt: "desc",
+      },
+      select: {
+        id: true,
+        lotId: true,
+        amountCents: true,
+        settledAt: true,
+        lot: {
+          select: {
+            id: true,
+            title: true,
+            imageUrl: true,
+            endsAt: true,
+            status: true,
+          },
+        },
+      },
+    });
 
+    const wins = settlements.map((settlement) => ({
+      id: settlement.id,
+      lotId: settlement.lotId,
+      title: settlement.lot.title,
+      imageUrl: settlement.lot.imageUrl,
+      endsAt: settlement.lot.endsAt,
+      settledAt: settlement.settledAt,
+      amountCents: settlement.amountCents.toString(),
+      status: "SETTLED" as const,
+    }));
+
+    const totalSpentCents = settlements.reduce(
+      (total, settlement) =>
+        total + settlement.amountCents,
+      BigInt(0)
+    );
+
+    return {
+      summary: {
+        winsCount: wins.length,
+        totalSpentCents: totalSpentCents.toString(),
+      },
+      wins,
+    };
+  }
 }
 
 export const auctionService = new AuctionService();

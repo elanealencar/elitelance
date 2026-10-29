@@ -149,6 +149,22 @@ export class AuctionController {
       });
     }
   }
+  
+  async myWins(_req: Request, res: Response) {
+    try {
+      const data = await auctionService.getMyWins(
+        res.locals.user.id
+      );
+
+      res.status(200).json(data);
+    } catch (error) {
+      console.error("Erro ao consultar arremates:", error);
+
+      res.status(500).json({
+        message: "Não foi possível carregar seus arremates.",
+      });
+    }
+  }
 }
 
 export const auctionController = new AuctionController();

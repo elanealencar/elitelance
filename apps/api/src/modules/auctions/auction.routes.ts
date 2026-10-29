@@ -34,6 +34,13 @@ auctionRoutes.get(
 );
 
 auctionRoutes.get(
+  "/my-wins",
+  authenticate,
+  authorize("BIDDER"),
+  (req, res) => auctionController.myWins(req, res)
+);
+
+auctionRoutes.get(
   "/:id/receipt",
   authenticate,
   (req, res) => auctionReceiptController.show(req, res)

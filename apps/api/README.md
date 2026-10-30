@@ -209,7 +209,46 @@ A recuperação diante de indisponibilidade da API externa ainda precisa de vali
 
 **Executados manualmente:** autenticação e perfis, lances de dois licitantes, reserva e liberação de saldo, prorrogações consecutivas de anti-sniping, encerramento automático, liquidação financeira, comprovante e auditoria pública com alteração e restauração de valor de lance.
 
-**Não declarados como concluídos:** suíte automatizada abrangente de integração/concorrência, testes de adulteração por exclusão e inserção direta, teste de indisponibilidade do catálogo externo.
+### Testes automatizados
+
+A API do EliteLance utiliza **Vitest + Supertest** para testes automatizados de integração HTTP, verificando o comportamento dos endpoints, validações e middlewares de segurança.
+
+### Cenários implementados
+
+| Categoria | Cenário | Resultado esperado |
+|---|---|---|
+| Health Check | Verificar disponibilidade da API | HTTP 200 |
+| Autenticação | Acesso sem token JWT | HTTP 401 |
+| Autenticação | Token JWT inválido | HTTP 401 |
+| Validação | Login com e-mail inválido | HTTP 400 |
+| Validação | Login sem senha | HTTP 400 |
+| Autorização (RBAC) | BIDDER tenta criar um lote | HTTP 403 |
+| Autorização (RBAC) | AUCTIONEER tenta registrar um lance | HTTP 403 |
+
+**Total: 7 testes automatizados.**
+
+### Executando os testes
+
+Na raiz do monorepositório:
+
+```bash
+npm run test --workspace=api
+```
+
+Para executar em modo de desenvolvimento:
+
+```bash
+npm run test:watch --workspace=api
+```
+
+### Estratégia de testes
+
+- **Vitest:** execução dos testes e validação dos resultados.
+- **Supertest:** simulação de requisições HTTP à aplicação Express.
+- **Mocks do Prisma:** simulação dos usuários nos testes de autorização, sem modificar registros no banco de dados.
+- **JWT de teste:** utilização de uma chave fictícia, isolada da configuração de produção.
+
+Os testes atuais cobrem autenticação, validação de entrada e controle de acesso. As regras financeiras, concorrência de lances e liquidação foram verificadas manualmente, mas ainda não possuem cobertura automatizada.
 
 ## Deploy
 

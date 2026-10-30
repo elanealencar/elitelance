@@ -174,9 +174,8 @@ Os seguintes fluxos foram **verificados manualmente** durante o desenvolvimento:
 
 ### Testes automatizados
 
-A API utiliza **Vitest + Supertest** para executar testes automatizados de integração HTTP.
-
-A suíte inicial contém 7 testes que verificam:
+O backend possui 7 testes automatizados utilizando
+Vitest + Supertest, cobrindo:
 
 - Disponibilidade da API por meio do endpoint de health check.
 - Proteção de rotas contra acessos sem autenticação.

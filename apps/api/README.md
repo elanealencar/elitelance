@@ -1,175 +1,175 @@
 # EliteLance — API
 
-API REST do **EliteLance**, uma plataforma de leilões desenvolvida como desafio técnico Full Stack para processo seletivo da Verzel. O backend gerencia autenticação, catálogo externo de produtos, criação de lotes, carteira fictícia, lances concorrentes, auditoria criptográfica e liquidação de leilões.
+API REST do **EliteLance**, plataforma de leilões desenvolvida para o desafio técnico Full Stack da Verzel. O backend gerencia autenticação, catálogo externo de produtos, lotes, carteira fictícia, lances concorrentes, liquidação e auditoria pública do histórico.
 
-> **Escopo:** este documento descreve a implementação do backend. A interface web, a atualização em tempo real e o deploy são tratados separadamente e não devem ser considerados concluídos por esta documentação.
+> Este documento descreve o backend. Para conhecer a aplicação completa, consulte também o README na raiz do monorepositório.
 
 ## Tecnologias
 
 - **Node.js, TypeScript e Express 5** — API HTTP.
 - **PostgreSQL** — persistência de dados.
 - **Prisma ORM 7** com `@prisma/adapter-pg` — acesso ao banco e migrações.
-- **JWT (`jsonwebtoken`) e `bcrypt`** — autenticação e proteção de senhas.
+- **JWT e bcrypt** — autenticação e armazenamento seguro de hashes de senha.
 - **Zod** — validação de entradas.
-- **tsx** — execução e desenvolvimento em TypeScript.
-- **SHA-256 (`node:crypto`)** — encadeamento de hashes dos lances.
+- **tsx** — desenvolvimento e execução de scripts TypeScript.
+- **SHA-256 (`node:crypto`)** — encadeamento de hashes do histórico de lances.
 
-## Estrutura
+## Organização
 
 ```text
 apps/api/
 ├── prisma/
-│   └── schema.prisma
+│   ├── schema.prisma
+│   └── migrations/
 ├── src/
-│   ├── generated/             # Cliente Prisma gerado
-│   ├── jobs/                  # Rotina periódica de finalização
-│   ├── lib/
-│   │   └── prisma.ts          # Instância do Prisma Client
-│   ├── middlewares/
-│   │   ├── auth.middleware.ts
-│   │   └── authorize.middleware.ts
+│   ├── generated/             # Prisma Client gerado
+│   ├── jobs/                  # Finalização periódica de leilões
+│   ├── lib/prisma.ts          # Conexão com PostgreSQL
+│   ├── middlewares/           # Autenticação e autorização
 │   ├── modules/
-│   │   ├── auctions/          # Lotes, status, liquidação e comprovantes
-│   │   ├── auth/              # Cadastro, login e perfil autenticado
-│   │   ├── bids/              # Lances, hashes e histórico auditável
-│   │   ├── catalog/           # Consulta ao catálogo externo
+│   │   ├── auctions/          # Lotes, liquidação e comprovantes
+│   │   ├── auth/              # Cadastro, login e perfil
+│   │   ├── bids/              # Lances, hashes e auditoria
+│   │   ├── catalog/           # Integração com catálogo externo
 │   │   └── wallet/            # Carteira e depósitos fictícios
-│   ├── scripts/               # Scripts auxiliares e testes manuais
+│   ├── scripts/               # Scripts auxiliares
 │   ├── app.ts
 │   └── server.ts
+├── prisma.config.ts
 └── package.json
 ```
 
-Os módulos organizam rotas, controllers, services e, quando aplicável, schemas de validação. As regras de negócio ficam nos services.
+Os módulos separam rotas, controllers e services; as regras de negócio ficam principalmente nos services.
 
 ## Pré-requisitos
 
-- Node.js e npm compatíveis com as dependências do projeto.
-- PostgreSQL em execução.
-- Banco de dados criado e acessível pela URL de conexão.
+- Node.js e npm compatíveis com o projeto.
+- PostgreSQL em execução e banco de dados criado.
 
-## Configuração local
+## Instalação e execução local
 
-A partir da raiz do monorepositório, instale as dependências:
+Na **raiz do monorepositório**:
 
 ```bash
 npm install
 ```
 
-Configure as variáveis de ambiente da API, conforme os arquivos de configuração do projeto. As variáveis necessárias incluem a conexão PostgreSQL (`DATABASE_URL`) e o segredo usado para assinar os tokens JWT. **Não publique valores reais de segredos nem arquivos `.env` no Git.**
+Crie `apps/api/.env` com valores adequados ao seu ambiente:
 
-> Confira os nomes exatos das variáveis JWT, da porta e de outras configurações em `src/server.ts`, no módulo de autenticação e em `prisma.config.ts` antes de criar um `.env.example`.
+```dotenv
+PORT=3333
+FRONTEND_URL=http://localhost:3000
+DATABASE_URL="postgresql://USUARIO:SENHA@localhost:5432/elitelance?schema=public"
+JWT_SECRET="SUBSTITUA_POR_UMA_CHAVE_ALEATORIA_LONGA"
+JWT_EXPIRES_IN="1h"
+AUCTIONEER_EMAIL="leiloeiro@elitelance.com"
+AUCTIONEER_PASSWORD="SUBSTITUA_PELA_SENHA_DESEJADA"
+DEMO_PASSWORD="SUBSTITUA_PELA_SENHA_DE_DEMONSTRACAO"
+```
 
-Aplique as migrações existentes e gere o cliente Prisma, a partir de `apps/api`:
+> Não versione `.env`, senhas, tokens nem URLs com credenciais. Variáveis de criação de contas só são utilizadas quando os scripts correspondentes são executados; confira o script antes de rodá-lo.
+
+A partir de `apps/api`:
 
 ```bash
 npx prisma migrate deploy
 npx prisma generate
-```
-
-Para desenvolvimento:
-
-```bash
 npm run dev
 ```
 
-Para validar a compilação:
+Alternativamente, na raiz do monorepositório, execute `npm run dev --workspace=api`.
+
+A API local utiliza, por padrão, `http://localhost:3333`. Verifique a disponibilidade em `GET /health`.
+
+Para compilar e executar a versão compilada, utilize os scripts do `apps/api/package.json`:
 
 ```bash
-npm run typecheck
-npm run build
+npm run build --workspace=api
+npm run start --workspace=api
 ```
 
-Para executar a versão compilada:
-
-```bash
-npm start
-```
-
-> O script `start` usa `node dist/server.js`. Confira o diretório de saída configurado em `tsconfig.json` antes de utilizar esse comando no deploy.
+**Contas de demonstração:** o projeto prevê um leiloeiro e dois licitantes, preparados por seed. Consulte o script de seed e o README principal para os comandos exatos e as credenciais de demonstração. Não execute seed de demonstração no banco de produção sem conferir seus efeitos.
 
 ## Modelo de dados
 
 | Modelo | Responsabilidade |
 |---|---|
-| `User` | Usuários com papéis `BIDDER` e `AUCTIONEER`; armazena hash da senha. |
-| `Wallet` | Saldo (`balanceCents`) e valor reservado (`reservedCents`) por usuário. |
-| `AuctionLot` | Lote, produto externo, preços, horários, status e leiloeiro. |
-| `Bid` | Lance, participante, valor, sequência e cadeia de hashes. |
-| `AuctionSettlement` | Registro único da liquidação de um lote, com vencedor, leiloeiro e valor. |
+| `User` | Usuários com papéis `AUCTIONEER` e `BIDDER`. |
+| `Wallet` | Saldo total e saldo reservado. |
+| `AuctionLot` | Lote, preços, datas, status e leiloeiro. |
+| `Bid` | Valor, licitante, sequência e hashes encadeados. |
+| `AuctionSettlement` | Liquidação, vencedor e valor do arremate. |
 
-Os valores monetários são armazenados em **centavos**, usando `BigInt`. Nas respostas JSON, os valores `BigInt` precisam ser serializados como strings para evitar perda de precisão.
+Valores monetários são armazenados em **centavos**, com `BigInt`, e serializados como strings nas respostas JSON quando necessário.
 
-Status previstos para lotes: `DRAFT`, `SCHEDULED`, `ACTIVE`, `FINISHED` e `CANCELED`.
+Os lotes podem apresentar os status `DRAFT`, `SCHEDULED`, `ACTIVE`, `FINISHED` e `CANCELED`. Lotes cancelados não devem aparecer na vitrine pública.
 
 ## Autenticação e autorização
 
 - Cadastro e login com senha protegida por `bcrypt`.
-- Autenticação por token JWT.
-- Middleware de autenticação valida o usuário e disponibiliza seus dados em `res.locals.user`.
-- Middleware de autorização restringe operações conforme o papel do usuário.
-- Leiloeiros podem criar lotes; licitantes podem ofertar lances e realizar depósitos fictícios.
-
-A criação de usuários leiloeiros pode ser realizada pelo script administrativo `src/scripts/create-auctioneer.ts`; não é uma permissão aberta a qualquer cadastro público.
+- Autenticação por JWT.
+- Middleware de autenticação disponibiliza o usuário em `res.locals.user`.
+- Autorização por papel: leiloeiros gerenciam lotes; licitantes ofertam lances e fazem depósitos fictícios.
+- O leiloeiro não pode ofertar em seu próprio lote.
 
 ## Rotas principais
-
-A lista abaixo reúne as rotas implementadas e testadas durante o desenvolvimento. Consulte os arquivos `*.routes.ts` para confirmar parâmetros, payloads e eventuais ajustes de prefixo.
 
 | Método | Rota | Finalidade |
 |---|---|---|
 | `POST` | `/auth/register` | Cadastro de usuário. |
-| `POST` | `/auth/login` | Login e emissão de JWT. |
-| `GET` | `/auth/me` | Dados do usuário autenticado. |
-| `GET` | `/catalog/search?q=...` | Pesquisa no catálogo externo. |
+| `POST` | `/auth/login` | Autenticação. |
+| `GET` | `/auth/me` | Perfil autenticado. |
+| `GET` | `/catalog/search?q=...` | Busca no catálogo externo. |
 | `GET` | `/auctions` | Listagem de lotes. |
-| `POST` | `/auctions` | Criação de lote por leiloeiro. |
-| `GET` | `/wallet` | Consulta à carteira do usuário. |
-| `POST` | `/wallet/deposit` | Depósito fictício de licitante. |
+| `POST` | `/auctions` | Criação de lote. |
+| `GET` | `/wallet` | Consulta à carteira. |
+| `POST` | `/wallet/deposit` | Depósito fictício. |
 | `POST` | `/auctions/:id/bids` | Registro de lance. |
-| `GET` | `/auctions/:id/bids` | Histórico público e verificação de integridade. |
-| `GET` | `/auctions/:id/receipt` | Comprovante de liquidação para usuário autorizado. |
+| `GET` | `/auctions/:id/bids` | Histórico e auditoria pública. |
+| `GET` | `/auctions/:id/receipt` | Consulta ao comprovante, conforme as regras de autorização. |
+| `GET` | `/health` | Verificação de saúde da API. |
 
-A API também disponibiliza uma rota de verificação de saúde (`/health`).
+> Para parâmetros, payloads e outras rotas, consulte os arquivos `*.routes.ts` da implementação.
 
-## Regras de negócio dos lances
+## Regras de lances e carteira
 
-1. O lote deve estar em período válido para receber lances.
-2. O lance deve respeitar o preço inicial ou o valor vigente acrescido do incremento mínimo.
-3. O usuário deve possuir saldo disponível suficiente para cobrir a oferta.
-4. O valor do lance líder fica reservado na carteira; ao ser superado, a reserva anterior é liberada.
-5. O licitante líder não pode cobrir o próprio lance.
+1. O lote precisa estar ativo e dentro do intervalo entre início e encerramento.
+2. O primeiro lance deve atingir o preço inicial; os seguintes devem respeitar o maior lance acrescido do incremento mínimo.
+3. O licitante deve possuir saldo disponível suficiente (`saldo total - saldo reservado`).
+4. O valor do lance líder é reservado. Quando outro licitante assume a liderança, a reserva anterior é liberada.
+5. O líder não pode cobrir o próprio lance.
 6. O leiloeiro não pode disputar o próprio lote.
-7. Um lance válido nos dois minutos finais prorroga o encerramento em aproximadamente dois minutos (*anti-sniping*).
+7. **Anti-sniping:** um lance válido nos últimos dois minutos acrescenta **exatamente dois minutos ao horário de encerramento vigente**. Novos lances nessa janela podem provocar novas prorrogações.
 
-As operações críticas são executadas em transações no PostgreSQL, com bloqueios de linhas para reduzir condições de corrida em lances simultâneos.
+O registro de lance ocorre em transação PostgreSQL. A implementação utiliza `SELECT ... FOR UPDATE` para serializar ofertas concorrentes por lote e bloqueios de carteira em ordem determinística.
 
 ## Liquidação automática
 
-Uma rotina periódica verifica lotes com prazo encerrado e inicia a liquidação:
+Uma rotina periódica processa lotes cujo prazo terminou:
 
-- Determina o lance vencedor, quando existente.
-- Efetiva o débito do vencedor e o crédito do leiloeiro.
-- Registra a liquidação em `AuctionSettlement`.
-- Marca o lote como finalizado.
-- Permite repetição segura da operação (*idempotência*), apoiada também na unicidade de `AuctionSettlement.lotId`.
-- Finaliza lotes sem lances sem criar um vencedor fictício.
+- Identifica o vencedor, se houver lances.
+- Debita o valor arrematado da carteira do vencedor e credita o leiloeiro.
+- Registra a liquidação e marca o lote como `FINISHED`.
+- Trata lotes sem lances sem inventar um vencedor.
+- Evita liquidações duplicadas por meio da lógica idempotente e da unicidade de `AuctionSettlement.lotId`.
 
-A rotina de finalização é iniciada junto à API e foi testada com verificação periódica de aproximadamente 15 segundos. Em produção com múltiplas instâncias, a estratégia de execução e coordenação desse job deve ser revisada.
+A rotina foi observada em testes manuais com processamento periódico de aproximadamente 15 segundos. Para múltiplas instâncias em produção, a coordenação desse job merece revisão.
 
-## Histórico auditável com SHA-256
+## Auditoria pública e integridade
 
-Cada novo lance auditável armazena:
+Cada lance armazena:
 
-- `sequence`: ordem sequencial do lance dentro do lote;
-- `previousHash`: hash do lance anterior, ou `GENESIS` no primeiro lance;
-- `hash`: SHA-256 calculado a partir dos identificadores, valor, data e hash anterior.
+- `sequence`: posição do lance na sequência do lote;
+- `previousHash`: hash anterior, ou `GENESIS` no primeiro lance;
+- `hash`: SHA-256 calculado sobre identificadores, valor, instante e hash anterior.
 
-O endpoint `GET /auctions/:id/bids` recalcula os hashes e verifica o encadeamento e a sequência, retornando um resumo com contagens de registros válidos, inválidos e não verificados, além do estado geral de integridade.
+O histórico público recalcula os hashes e verifica a ligação entre registros e a continuidade das sequências. A resposta apresenta contagens de lances válidos, inválidos e não verificados, além de um estado geral de integridade.
 
-**Limitações:** a cadeia detecta alterações inconsistentes, mas não é uma prova imutável contra um administrador capaz de reescrever todo o histórico e recalcular os hashes. Uma âncora externa assinada ou registro append-only fortaleceria essa garantia. Registros antigos sem hash ou sequência podem aparecer como não verificados.
+**Validação manual realizada:** em banco local, a alteração do valor de um lance sem recalcular o hash fez a interface indicar **“Integridade comprometida”**; após restaurar o valor original, a auditoria voltou a indicar histórico íntegro. O acesso à auditoria também foi confirmado sem login.
 
-### Teste manual de integridade
+**Limitações conhecidas:** uma cadeia SHA-256 armazenada somente no mesmo banco não impede que alguém com controle de escrita reescreva os registros e recalcule os hashes. A exclusão do último lance também pode não ser detectada se não houver uma âncora confiável independente. Testes de exclusão e inserção direta de lances não foram concluídos. Portanto, o mecanismo demonstra detecção de adulterações simples, mas não oferece garantia absoluta contra todas as alterações diretas no banco.
+
+### Teste auxiliar de hash
 
 A partir de `apps/api`:
 
@@ -177,7 +177,7 @@ A partir de `apps/api`:
 npx tsx src/scripts/test-bid-integrity.ts ID_DO_LOTE
 ```
 
-Resultado esperado para um lote com lance auditável:
+Saída esperada para um lance auditável:
 
 ```text
 {
@@ -187,36 +187,42 @@ Resultado esperado para um lote com lance auditável:
 }
 ```
 
-Esse teste recalcula o hash com o valor original e com um valor simulado diferente. **Não altera o banco de dados** e não substitui um teste de integração do endpoint com dados efetivamente adulterados.
-
-Outros scripts auxiliares disponíveis em `src/scripts/` incluem `test-db.ts`, `test-settlement.ts` e `create-auctioneer.ts`. Há também um teste de lances concorrentes em `scripts/test-concurrent-bids.cjs`, na raiz do monorepositório.
+Esse script simula uma mudança no valor **em memória**; não modifica o banco nem substitui um teste de integração. Outros scripts auxiliares podem ser encontrados em `src/scripts/`.
 
 ## Datas e fusos horários
 
-Os horários são tratados como instantes absolutos no backend. Para hashes, a data é normalizada com `toISOString()` (UTC). A interface web deverá apresentar os horários ao usuário com `Intl.DateTimeFormat`, usando `timeZone: "America/Sao_Paulo"` quando a experiência desejada for o horário de Brasília.
+O backend compara instantes de tempo para validar início, encerramento e prorrogações. Na geração dos hashes, `createdAt` é normalizado com `toISOString()` (UTC). A apresentação dos horários no frontend deve respeitar o fuso desejado, sem alterar os timestamps persistidos.
 
-Não converta nem sobrescreva os timestamps persistidos apenas para exibição: isso poderia introduzir inconsistências nas regras de encerramento e na verificação dos hashes.
+## Catálogo externo
 
-## Integração com catálogo externo
+O módulo de catálogo consulta uma API pública de produtos (**DummyJSON**) para auxiliar a criação de lotes. Dados relevantes do produto são armazenados no próprio lote, de modo que a vitrine e os lotes existentes não precisem consultar o catálogo externo a cada acesso.
 
-O módulo `catalog` consulta produtos de uma API pública (DummyJSON, conforme a implementação atual) para apoiar a criação de lotes. O backend mantém dados relevantes do produto no lote para que a experiência não dependa exclusivamente da disponibilidade da API externa após a criação.
+A recuperação diante de indisponibilidade da API externa ainda precisa de validação específica.
 
-A resiliência completa a falhas da API externa deve ser validada antes da entrega final.
+## Testes e verificações
 
-## Estado do projeto
+**Executados manualmente:** autenticação e perfis, lances de dois licitantes, reserva e liberação de saldo, prorrogações consecutivas de anti-sniping, encerramento automático, liquidação financeira, comprovante e auditoria pública com alteração e restauração de valor de lance.
 
-**Implementado e testado manualmente:** autenticação, perfis, criação e listagem de lotes, carteira fictícia, lances concorrentes, reserva/liberação de saldo, anti-sniping, liquidação, comprovantes e histórico auditável.
+**Não declarados como concluídos:** suíte automatizada abrangente de integração/concorrência, testes de adulteração por exclusão e inserção direta, teste de indisponibilidade do catálogo externo.
 
-**Ainda a concluir ou validar:** interface Next.js completa, atualização em tempo real para os usuários, testes automatizados de integração, deploy público, configuração de produção e documentação final da solução.
+## Deploy
 
-## Segurança e observações de produção
+- **API:** https://elitelance-api.onrender.com
+- **Health check:** https://elitelance-api.onrender.com/health
+- **Frontend:** https://elite-lance.vercel.app
+- **Código:** https://github.com/elanealencar/elitelance
 
-- Nunca versionar senhas, tokens JWT ou URLs de banco contendo credenciais.
-- Usar segredo JWT forte e configuração segura de CORS.
-- Validar entradas e tratar erros sem revelar dados sensíveis.
-- Revisar a execução do job de liquidação em ambientes com múltiplas réplicas.
-- Criar testes de integração para concorrência, falhas transacionais e autorização.
+O ambiente publicado utiliza Render para a API, Vercel para a interface e Neon/PostgreSQL para persistência. As variáveis de ambiente de produção são configuradas diretamente nos respectivos serviços, sem versionar segredos.
+
+## Segurança e pontos de evolução
+
+- Manter senhas, tokens e strings de conexão fora do Git.
+- Usar JWT secret forte e CORS restrito ao frontend autorizado.
+- Preservar as validações no servidor mesmo quando existirem validações no frontend.
+- Coordenar o job de liquidação caso a API seja executada em múltiplas réplicas.
+- Adicionar testes automatizados de concorrência, autorização, falhas transacionais e integridade.
+- Para auditoria mais resistente a adulterações com acesso ao banco, considerar uma âncora assinada armazenada de forma independente ou um log imutável.
 
 ---
 
-Documentação do backend do desafio técnico **EliteLance**. 
+Documentação do backend do **EliteLance**, desenvolvido para o desafio técnico da Verzel.

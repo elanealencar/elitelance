@@ -106,11 +106,17 @@ Os lotes podem apresentar os status `DRAFT`, `SCHEDULED`, `ACTIVE`, `FINISHED` e
 
 ## Autenticação e autorização
 
-- Cadastro e login com senha protegida por `bcrypt`.
-- Autenticação por JWT.
-- Middleware de autenticação disponibiliza o usuário em `res.locals.user`.
-- Autorização por papel: leiloeiros gerenciam lotes; licitantes ofertam lances e fazem depósitos fictícios.
-- O leiloeiro não pode ofertar em seu próprio lote.
+A aplicação utiliza contas de demonstração previamente cadastradas para permitir a avaliação dos diferentes perfis.
+
+- **AUCTIONEER (leiloeiro):** responsável pela criação e gerenciamento dos lotes.
+- **BIDDER (licitante):** pode participar dos leilões, registrar lances e utilizar a carteira fictícia.
+- As senhas são armazenadas utilizando bcrypt.
+- A autenticação utiliza JWT com algoritmo HS256.
+- Os middlewares `authenticate` e `authorize` realizam a identificação do usuário e o controle de acesso por perfil.
+- O usuário autenticado é disponibilizado em `res.locals.user`.
+- As credenciais de demonstração são disponibilizadas no README principal.
+
+O fluxo público de cadastro não é disponibilizado na interface de demonstração. Os usuários de teste são preparados previamente por meio do seed.
 
 ## Rotas principais
 

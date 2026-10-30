@@ -28,8 +28,8 @@
 6. Entre como **Leiloeiro** para consultar os lotes e criar um novo usando o catálogo de produtos.
 
 <p align="center">
-  <img src="docs/images/inicial.png" alt="Página inicial" width="400">
-  <img src="docs/images/vitrine.png" alt="Vitrine de leilões" width="400">
+  <img src="docs/images/inicial.png" alt="Página inicial" width="390">
+  <img src="docs/images/vitrine.png" alt="Vitrine de leilões" width="390">
 </p>
 
 ## Funcionalidades
@@ -43,6 +43,16 @@
        alt="Sala de leilão do EliteLance"
        width="500">
 </p>
+
+<p align="center">
+  <img src="docs/images/carteira.png"
+       alt="Carteira digital do licitante"
+       width="390">
+  <img src="docs/images/comprovante.png"
+       alt="Comprovante de arremate"
+       width="390">
+</p>
+
 
 
 **Regras de negócio:**

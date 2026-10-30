@@ -134,15 +134,52 @@ export function LoginForm() {
           </button>
         </div>
 
-        <p className="mt-7 text-center text-sm text-muted">
-          Ainda não tem uma conta?{" "}
-          <Link
-            href="/register"
-            className="font-semibold text-primary hover:underline"
-          >
-            Cadastre-se
-          </Link>
-        </p>
+        
+        {/* Contas de demonstração */}
+        <div className="mt-8 border-t border-border pt-6">
+          <div className="mb-4 text-center">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-secondary">
+              Acesso de demonstração
+            </p>
+
+            <p className="mt-2 text-xs text-muted">
+              Utilize uma das contas abaixo para explorar a plataforma.
+            </p>
+          </div>
+
+          <div className="space-y-3 rounded-xl border border-border bg-background p-4 text-xs">
+            <div>
+              <p className="mb-1 font-semibold text-primary">Leiloeiro</p>
+              <p className="break-all text-muted">
+                auctioneer@elitelance.demo
+              </p>
+            </div>
+
+            <div className="border-t border-border pt-3">
+              <p className="mb-1 font-semibold text-primary">Licitante 1</p>
+              <p className="break-all text-muted">
+                bidder1@elitelance.demo
+              </p>
+            </div>
+
+            <div className="border-t border-border pt-3">
+              <p className="mb-1 font-semibold text-primary">Licitante 2</p>
+              <p className="break-all text-muted">
+                bidder2@elitelance.demo
+              </p>
+            </div>
+
+            <div className="border-t border-border pt-3">
+              <p className="text-muted">
+                <span className="font-semibold text-foreground">
+                  Senha de demonstração:
+                </span>{" "}
+                PASSWORD_DEMO
+              </p>
+            </div>
+          </div>
+        </div>
+
       </form>
     </div>
   );

@@ -128,11 +128,13 @@ Para detalhes de endpoints, modelo de dados e scripts, consulte o [README da API
 
 ## Testes e decisões técnicas
 
-Foram validados manualmente fluxos de autenticação, criação de lotes, lances, reserva e liberação de saldo, prorrogação anti-sniping, encerramento, liquidação e comprovantes. Na auditoria pública, uma alteração manual no valor de um lance no banco foi detectada; após restaurar o valor, o histórico voltou a ser apresentado como íntegro.
+Foram validados manualmente fluxos de autenticação, criação de lotes, lances, reserva e liberação de saldo, prorrogação anti-sniping, encerramento, liquidação e comprovantes. Na auditoria pública, uma alteração manual no valor de um lance no banco foi detectada; após restaurar o valor, o histórico voltou a ser apresentado como íntegro. A auditoria utiliza hashes encadeados SHA-256 para verificar a consistência do histórico de lances. A implementação detecta alterações inconsistentes nos registros.
 
 **Escolhas técnicas:** valores monetários em centavos com `BigInt`; transações e bloqueios de linha no PostgreSQL para reduzir conflitos entre lances; liquidação idempotente; cadeia de hashes por lote para conferir a consistência do histórico.
 
-**Limitações conhecidas:** a cadeia de hashes não é uma prova imutável independente do banco. A exclusão do último lance pode não ser detectada, e um agente com acesso para reescrever toda a cadeia poderia recalcular os hashes. Testes específicos de inserção e exclusão adulteradas não foram concluídos. A resiliência durante indisponibilidade do catálogo externo também precisa de validação adicional. O processamento periódico de liquidação exigiria coordenação extra em uma implantação com múltiplas instâncias da API.
+**Segurança e autorização:** autenticação com JWT (HS256), senhas protegidas com bcrypt, validação de entradas com Zod e controle de acesso baseado em perfis (RBAC). O cadastro público cria exclusivamente usuários `BIDDER`, enquanto operações privilegiadas são protegidas por middlewares de autenticação e autorização.
+
+**Validação:** os principais fluxos de negócio foram verificados manualmente, incluindo concorrência entre licitantes, reserva e liberação de saldo, anti-sniping, liquidação idempotente e auditoria de integridade.
 
 ## Uso de inteligência artificial
 

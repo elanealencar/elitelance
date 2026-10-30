@@ -117,6 +117,8 @@ async function main() {
         title: "Smartphone Premium - Leilão Demo",
         description:
           "Lote demonstrativo do EliteLance para avaliação dos fluxos de lances, carteira e arremate.",
+        imageUrl:
+          "https://cdn.dummyjson.com/product-images/smartphones/iphone-x/thumbnail.webp",
         startingPriceCents: BigInt(15000),
         incrementCents: BigInt(1000),
         startsAt,

@@ -64,7 +64,7 @@ export async function AuctionsList() {
       {sortedAuctions.map((auction) => (
         <article
           key={auction.id}
-          className="group overflow-hidden rounded-2xl border border-border bg-surface transition hover:border-secondary/60"
+          className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface transition hover:border-secondary/60"
         >
           <div className="relative flex h-56 items-center justify-center overflow-hidden bg-[#20222b]">
             {auction.imageUrl ? (
@@ -82,7 +82,7 @@ export async function AuctionsList() {
             </span>
           </div>
 
-          <div className="p-6">
+          <div className="flex flex-1 flex-col p-6">
             <h3 className="line-clamp-2 min-h-14 text-xl font-semibold">
               {auction.title}
             </h3>
@@ -100,32 +100,33 @@ export async function AuctionsList() {
               )}
             </p>
             
-          <div className="mt-6 border-t border-border pt-5">
-            {auction.status === "ACTIVE" && (
-              <div className="mb-4">
-                <p className="mb-2 text-xs uppercase tracking-wider text-muted">
-                  Tempo restante
-                </p>
-                <AuctionCountdown endsAt={auction.endsAt} />
-              </div>
-            )}
+            <div className="mt-6 border-t border-border pt-5">
+              {auction.status === "ACTIVE" && (
+                <div className="mb-4">
+                  <p className="mb-2 text-xs uppercase tracking-wider text-muted">
+                    Tempo restante
+                  </p>
+                  <AuctionCountdown endsAt={auction.endsAt} />
+                </div>
+              )}
 
-            <p className="text-xs text-muted">
-              Encerramento
-            </p>
+              <p className="text-xs text-muted">
+                Encerramento
+              </p>
 
-            <p className="mt-1 text-sm font-medium">
-              {formatDateBR(auction.endsAt)} · Brasília
-            </p>
-          </div>
+              <p className="mt-1 text-sm font-medium">
+                {formatDateBR(auction.endsAt)} · Brasília
+              </p>
+            </div>
 
-
-            <Link
-              href={`/auctions/${auction.id}`}
-              className="mt-6 block rounded-full border border-primary py-3 text-center text-sm font-bold text-primary transition hover:bg-primary hover:text-black"
-            >
-              VER DETALHES ↗
-            </Link>
+            <div className="mt-auto pt-6">
+              <Link
+                href={`/auctions/${auction.id}`}
+                className="block rounded-full border border-primary py-3 text-center text-sm font-bold text-primary transition hover:bg-primary hover:text-black"
+              >
+                VER DETALHES ↗
+              </Link>
+            </div>
           </div>
         </article>
       ))}

@@ -17,6 +17,7 @@ type AuctionsResponse = {
 
 export async function getAuctions(): Promise<Auction[]> {
   const baseUrl =
+    process.env.API_URL ??
     process.env.NEXT_PUBLIC_API_URL ??
     "http://localhost:3333";
 

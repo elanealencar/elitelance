@@ -172,6 +172,28 @@ Os seguintes fluxos foram **verificados manualmente** durante o desenvolvimento:
 
 **Validação:** os principais fluxos de negócio foram verificados manualmente, incluindo concorrência entre licitantes, reserva e liberação de saldo, anti-sniping, liquidação idempotente e auditoria de integridade.
 
+### Testes automatizados
+
+A API utiliza **Vitest + Supertest** para executar testes automatizados de integração HTTP.
+
+A suíte inicial contém 7 testes que verificam:
+
+- Disponibilidade da API por meio do endpoint de health check.
+- Proteção de rotas contra acessos sem autenticação.
+- Rejeição de tokens JWT inválidos.
+- Validação de dados de entrada no login.
+- Controle de acesso baseado em perfis (RBAC).
+- Restrição de criação de lotes a leiloeiros.
+- Restrição de registro de lances a licitantes.
+
+Para executar os testes:
+
+```bash
+npm run test --workspace=api
+```
+
+Os testes de autorização utilizam mocks do Prisma, evitando alterações nos dados do banco de produção.
+
 ## Uso de inteligência artificial
 
 Ferramentas de IA foram usadas como apoio para explorar soluções, compreender conceitos, revisar trechos de código, investigar erros e estruturar a documentação. A implementação foi integrada e os fluxos descritos como testados foram verificados manualmente durante o desenvolvimento.

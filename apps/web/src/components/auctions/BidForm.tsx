@@ -9,6 +9,7 @@ type BidFormProps = {
   auctionId: string;
   minimumBidCents: string;
   disabled?: boolean;
+  isLeading?: boolean;
   onBidSuccess?: () => void;
 };
 
@@ -16,6 +17,7 @@ export function BidForm({
   auctionId,
   minimumBidCents,
   disabled = false,
+  isLeading = false,
   onBidSuccess,
 }: BidFormProps) {
   const router = useRouter();
@@ -115,7 +117,11 @@ export function BidForm({
           type="text"
           inputMode="decimal"
           placeholder={
-            disabled ? "Você já possui o maior lance" : "Ex.: 150,00"
+            isLeading
+              ? "Você já possui o maior lance"
+              : disabled
+                ? "Aguarde, verificando seu lance..."
+                : "Ex.: 150,00"
           }
           value={amount}
           onChange={(event) => setAmount(event.target.value)}
@@ -147,9 +153,11 @@ export function BidForm({
       >
         {loading
           ? "REGISTRANDO LANCE..."
-          : disabled
+          : isLeading
             ? "VOCÊ JÁ POSSUI O MAIOR LANCE"
-            : "CONFIRMAR LANCE"}
+            : disabled
+              ? "AGUARDE..."
+              : "CONFIRMAR LANCE"}
       </button>
     </form>
   );

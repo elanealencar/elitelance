@@ -109,9 +109,10 @@ export function AuctionBidPanel({
         minimumBidCents={minimumBidCents}
         disabled={
           loading ||
-          statusError ||
+          Boolean(statusError) ||
           status?.isLeading === true
         }
+        isLeading={status?.isLeading === true}
         onBidSuccess={handleBidSuccess}
       />
     </>

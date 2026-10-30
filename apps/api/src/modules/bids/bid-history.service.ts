@@ -82,7 +82,7 @@ export class BidHistoryService {
       }
 
       expectedPreviousHash = bid.hash;
-      expectedSequence = bid.sequence + 1;
+      expectedSequence++;
 
       return {
         id: bid.id,

@@ -1,6 +1,6 @@
 # EliteLance 🏷️
 
-**Plataforma de leilões online** desenvolvida para o desafio técnico **Elite Dev — Verzel**. A aplicação permite criar lotes a partir de produtos de um catálogo externo, disputar leilões com lances, acompanhar uma carteira fictícia e consultar publicamente a integridade do histórico.
+**Plataforma de leilões online** desenvolvida para o desafio técnico **Elite Dev — Verzel**. A aplicação permite criar lotes a partir de produtos de um catálogo externo, disputar leilões com lances, acompanhar uma carteira fictícia e auditoria pública do histórico.
 
 ## Acesse e experimente
 
@@ -34,9 +34,9 @@
 
 ## Funcionalidades
 
-**Leiloeiro:** busca de produtos em API externa, criação de lotes com preços e horários, acompanhamento de leilões e resultados.
+**Leiloeiro: (`AUCTIONEER`)** consulta produtos de um catálogo externo, cria lotes com preço inicial, incremento mínimo e período de disputa, acompanha os lotes e consulta os resultados.
 
-**Licitante:** listagem e filtros de leilões, detalhes e contagem regressiva, lances, carteira com saldo disponível e reservado, histórico de participações, arremates e comprovante.
+**Licitante: (`BIDDER`):** pesquisa e filtra leilões, acompanha detalhes e contagem regressiva, registra lances, consulta carteira fictícia e histórico de participações, visualiza arremates e acessa o comprovante quando vencedor.
 
 <p align="center">
   <img src="docs/images/sala-leilao.png"
@@ -53,17 +53,23 @@
        width="390">
 </p>
 
-
-
 **Regras de negócio:**
 
-- O primeiro lance respeita o preço inicial; os seguintes exigem o lance líder mais o incremento mínimo.
-- Não é permitido cobrir o próprio lance líder nem ofertar no próprio lote.
-- O lance líder reserva saldo; quando superado, a reserva anterior é liberada.
-- Um lance aceito nos últimos dois minutos **acrescenta dois minutos ao encerramento vigente** (*anti-sniping*).
-- Ao finalizar, a liquidação debita o vencedor, credita o leiloeiro e evita processamento duplicado.
-- O histórico de lances é público e possui verificação de integridade por hashes encadeados SHA-256.
+**1. Elegibilidade do lote e dos participantes.** O lance só é aceito quando o lote está ativo e dentro do período de disputa. Um licitante não pode cobrir seu próprio lance líder, e o leiloeiro não pode disputar o próprio lote. As permissões são verificadas no backend, não apenas pela interface.
 
+**2. Preço inicial e incremento mínimo.** O primeiro lance deve ser igual ou superior ao preço inicial do lote. A partir do segundo, a oferta precisa atingir o valor do lance líder **mais o incremento mínimo**. Exemplo: se o lance líder é R$ 120 e o incremento é R$ 10, a próxima oferta válida começa em R$ 130.
+
+**3. Carteira e reserva de saldo.** A aplicação usa uma carteira **fictícia**. O saldo disponível corresponde ao saldo total menos o valor reservado. Ao assumir a liderança, o licitante tem o valor da oferta reservado; quando outro licitante o supera, sua reserva é liberada. Isso evita que o mesmo saldo disponível seja comprometido simultaneamente em ofertas incompatíveis.
+
+**4. Concorrência entre lances.** O processamento ocorre em transações PostgreSQL, com bloqueio de linhas (`SELECT ... FOR UPDATE`) para serializar ofertas concorrentes no mesmo lote e reduzir inconsistências entre liderança, histórico e reservas. As carteiras envolvidas são bloqueadas em ordem determinística.
+
+**5. Prorrogação automática (*anti-sniping*).** Um lance válido aceito nos **últimos dois minutos** acrescenta **exatamente dois minutos ao horário de encerramento vigente**. Exemplo: se o encerramento estava previsto para 15h00 e um lance válido é registrado às 14h59, o novo encerramento passa para 15h02. Um novo lance dentro da janela final pode provocar outra prorrogação.
+
+**6. Encerramento e liquidação.** Uma rotina periódica processa lotes encerrados. Havendo vencedor, o valor arrematado é debitado da carteira do licitante e creditado ao leiloeiro, com registro da liquidação. Lotes sem lances são encerrados sem vencedor. A liquidação é **idempotente**, para evitar débitos ou créditos duplicados caso o processamento seja repetido.
+
+**7. Comprovante de arremate.** Após a conclusão aplicável do leilão, o vencedor pode consultar o comprovante do resultado. A consulta segue as regras de autorização da API.
+
+**8. Auditoria pública dos lances.** Cada lance integra uma sequência com `previousHash` e `hash` SHA-256, formando uma cadeia por lote. A consulta pública verifica a continuidade da sequência e a consistência dos hashes, permitindo identificar alterações incompatíveis com os registros encadeados.
 
 <p align="center">
   <img src="docs/images/auditoria.png"
@@ -91,7 +97,21 @@ elitelance/
 └── README.md
 ```
 
-O frontend se comunica com a API por meio de rotas internas do Next.js. A API concentra autenticação, validações, transações financeiras simuladas, processamento dos lances e liquidação dos leilões.
+O frontend utiliza rotas internas do Next.js para se comunicar com a API. O backend concentra validações, autenticação, autorização, regras de lances, operações da carteira e liquidação. Os módulos da API organizam controllers, services e rotas por responsabilidade.
+
+### Segurança e autorização
+
+- O cadastro público valida `name`, `email` e `password` com **Zod** e rejeita campos inesperados; a role é definida no servidor como **`BIDDER`**.
+- As senhas são armazenadas com hash **bcrypt**, não em texto puro.
+- O login emite JWT assinado com **HS256**; o middleware verifica assinatura e validade do token.
+- A cada requisição autenticada, o backend consulta o usuário no banco e obtém sua role atual.
+- O middleware de autorização permite restringir endpoints por perfil (`AUCTIONEER` ou `BIDDER`).
+
+### Persistência e decisões técnicas
+
+Valores monetários são representados em **centavos com `BigInt`**, evitando cálculos financeiros com ponto flutuante. As operações críticas de lances e reservas são coordenadas em transações no PostgreSQL. A liquidação mantém um registro próprio para prevenir processamento duplicado. A integração com o catálogo externo (**DummyJSON**) fica no backend; dados necessários dos produtos são persistidos nos lotes criados.
+
+Para endpoints, modelos Prisma e scripts auxiliares, consulte o [README da API](apps/api/README.md).
 
 ## Executar localmente
 
@@ -102,7 +122,20 @@ Requisitos: Node.js, npm e PostgreSQL com um banco `elitelance` criado.
 npm install
 ```
 
-Crie `apps/api/.env` com `PORT=3333`, `FRONTEND_URL=http://localhost:3000`, `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN=1h` e as variáveis de senha usadas pelo seed (`DEMO_PASSWORD`, `AUCTIONEER_PASSWORD`, se aplicáveis). Configure `apps/web/.env.local`:
+Crie `apps/api/.env` e configure as variáveis necessárias:
+
+```dotenv
+PORT=3333
+FRONTEND_URL=http://localhost:3000
+DATABASE_URL="postgresql://USUARIO:SENHA@localhost:5432/elitelance?schema=public"
+JWT_SECRET="SUBSTITUA_POR_UMA_CHAVE_SEGURA"
+JWT_EXPIRES_IN="1h"
+AUCTIONEER_EMAIL="auctioneer@elitelance.demo"
+AUCTIONEER_PASSWORD="SENHA_LOCAL_DO_LEILOEIRO"
+DEMO_PASSWORD="SENHA_LOCAL_DAS_CONTAS_DEMO"
+```
+
+Crie `apps/web/.env.local`:
 
 ```dotenv
 API_URL=http://localhost:3333
@@ -128,11 +161,14 @@ Para detalhes de endpoints, modelo de dados e scripts, consulte o [README da API
 
 ## Testes e decisões técnicas
 
-Foram validados manualmente fluxos de autenticação, criação de lotes, lances, reserva e liberação de saldo, prorrogação anti-sniping, encerramento, liquidação e comprovantes. Na auditoria pública, uma alteração manual no valor de um lance no banco foi detectada; após restaurar o valor, o histórico voltou a ser apresentado como íntegro. A auditoria utiliza hashes encadeados SHA-256 para verificar a consistência do histórico de lances. A implementação detecta alterações inconsistentes nos registros.
+Os seguintes fluxos foram **verificados manualmente** durante o desenvolvimento:
 
-**Escolhas técnicas:** valores monetários em centavos com `BigInt`; transações e bloqueios de linha no PostgreSQL para reduzir conflitos entre lances; liquidação idempotente; cadeia de hashes por lote para conferir a consistência do histórico.
-
-**Segurança e autorização:** autenticação com JWT (HS256), senhas protegidas com bcrypt, validação de entradas com Zod e controle de acesso baseado em perfis (RBAC). O cadastro público cria exclusivamente usuários `BIDDER`, enquanto operações privilegiadas são protegidas por middlewares de autenticação e autorização.
+- Cadastro/login e uso de perfis de demonstração.
+- Criação de lotes e disputa com dois licitantes.
+- Regras de preço mínimo, reserva e liberação de saldo.
+- Lances concorrentes e prorrogação automática nos minutos finais.
+- Encerramento, liquidação sem duplicidade e comprovante do vencedor.
+- Auditoria pública: alteração manual de valor no banco detectada como inconsistência; restauração do valor retornou a indicação de integridade.
 
 **Validação:** os principais fluxos de negócio foram verificados manualmente, incluindo concorrência entre licitantes, reserva e liberação de saldo, anti-sniping, liquidação idempotente e auditoria de integridade.
 

@@ -195,7 +195,23 @@ Os testes de autorização utilizam mocks do Prisma, evitando alterações nos d
 
 ## Uso de inteligência artificial
 
-Ferramentas de IA foram usadas como apoio para explorar soluções, compreender conceitos, revisar trechos de código, investigar erros e estruturar a documentação. A implementação foi integrada e os fluxos descritos como testados foram verificados manualmente durante o desenvolvimento.
+Durante o desenvolvimento do EliteLance, utilizei ferramentas de Inteligência Artificial como apoio ao processo de desenvolvimento, principalmente o **ChatGPT Pro** e, pontualmente, o **GitHub Copilot** integrado ao VS Code.
+
+**Como utilizei:**
+
+- **Arquitetura e planejamento:** discussão de alternativas técnicas, organização das funcionalidades e análise das regras de negócio.
+- **Desenvolvimento:** apoio na implementação de funcionalidades, sugestões de código e investigação de erros.
+- **Revisão técnica:** análise de autenticação, autorização por perfis, regras de lances, transações e tratamento de erros.
+- **Testes:** apoio na elaboração de cenários e implementação de testes automatizados com Vitest e Supertest.
+- **Documentação:** organização e revisão dos READMEs e das instruções de execução.
+
+**Revisão e validação das soluções**
+
+As sugestões geradas por IA foram analisadas e adaptadas ao contexto da aplicação. As decisões de implementação, a integração entre os componentes e a validação do funcionamento ficaram sob minha responsabilidade.
+
+Realizei testes manuais dos principais fluxos, incluindo lances concorrentes, reserva e liberação de saldo, liquidação e auditoria de integridade. Também executei uma suíte de sete testes automatizados para verificar autenticação, validação de entrada e autorização por perfil.
+
+A IA foi utilizada como ferramenta de apoio ao aprendizado, à análise de problemas e à produtividade, sem substituir a revisão e a validação técnica das soluções.
 
 ---
 

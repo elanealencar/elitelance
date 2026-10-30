@@ -72,12 +72,18 @@ export class AuthService {
       throw new Error("JWT_SECRET_NOT_CONFIGURED");
     }
 
+    const jwtExpiresIn = process.env.JWT_EXPIRES_IN ?? "1h";
+
+    if (jwtExpiresIn !== "1h") {
+      throw new Error("JWT_EXPIRES_IN_INVALID");
+    }
+
     const token = jwt.sign(
       {},
       secret,
       {
         subject: user.id,
-        expiresIn: "1h",
+        expiresIn: jwtExpiresIn,
         algorithm: "HS256",
       }
     );
